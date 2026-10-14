@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+body {
+  background: #050505 url('/bg.jpg') center/cover no-repeat fixed;
+  color: white;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  z-index: -1;
+}

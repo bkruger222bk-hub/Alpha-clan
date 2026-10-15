@@ -110,7 +110,6 @@ export default function LogGame() {
           Log a Game
         </h1>
 
-        {/* Big visible timer */}
         <div className={`text-center py-4 rounded-xl border ${windowOpen ? 'border-cyan-500 bg-cyan-950/40' : 'border-red-500 bg-red-950/40'}`}>
           <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">Logging Window</p>
           <p className={`text-2xl font-black ${windowOpen ? 'text-cyan-400' : 'text-red-400'}`}>
@@ -158,6 +157,19 @@ export default function LogGame() {
         </button>
 
         {message && <p className="text-center text-sm text-yellow-400">{message}</p>}
+
+        {/* Scoring explanation */}
+        <div className="mt-6 pt-6 border-t border-gray-700">
+          <h2 className="text-center text-sm font-semibold text-cyan-400 tracking-wider mb-3">HOW POINTS ARE CALCULATED</h2>
+          <div className="text-xs space-y-1.5 text-gray-300">
+            <div className="flex justify-between"><span>1 – 10 elims</span><span className="text-yellow-400">1.0 pt each</span></div>
+            <div className="flex justify-between"><span>11 – 20 elims</span><span className="text-yellow-400">1.5 pts each (from 11+)</span></div>
+            <div className="flex justify-between"><span>21 – 30 elims</span><span className="text-yellow-400">2.0 pts each (from 21+)</span></div>
+            <div className="flex justify-between"><span>31+ elims</span><span className="text-yellow-400">2.5 pts each (from 31+)</span></div>
+          </div>
+          <p className="text-[11px] text-gray-500 text-center mt-3">Points are calculated automatically when you log a game.</p>
+        </div>
+
         <a href="/" className="block text-center text-gray-400 hover:text-cyan-400 text-sm">← Back to Home</a>
       </div>
     </div>

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+
+const WINDOW_HOURS = 5
 
 export default function LogGame() {
   const [mode, setMode] = useState('Battle Royale')
@@ -9,9 +11,57 @@ export default function LogGame() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<string | null>(null)
+  const [windowOpen, setWindowOpen] = useState(true)
   const supabase = createClient()
 
+  useEffect(() => {
+    const checkWindow = async () => {
+      const { data } = await supabase
+        .from('game_logs')
+        .select('created_at')
+        .order('created_at', { ascending: true })
+        .limit(1)
+
+      if (!data || data.length === 0) {
+        setTimeLeft('Window not started yet')
+        setWindowOpen(true)
+        return
+      }
+
+      const start = new Date(data[0].created_at)
+      const end = new Date(start.getTime() + WINDOW_HOURS * 60 * 60 * 1000)
+      const now = new Date()
+
+      if (now > end) {
+        setWindowOpen(false)
+        setTimeLeft('Logging closed')
+        return
+      }
+
+      const updateTimer = () => {
+        const diff = end.getTime() - new Date().getTime()
+        if (diff <= 0) {
+          setWindowOpen(false)
+          setTimeLeft('Logging closed')
+          return
+        }
+        const h = Math.floor(diff / 3600000)
+        const m = Math.floor((diff % 3600000) / 60000)
+        const s = Math.floor((diff % 60000) / 1000)
+        setTimeLeft(`${h}h ${m}m ${s}s`)
+      }
+
+      updateTimer()
+      const interval = setInterval(updateTimer, 1000)
+      return () => clearInterval(interval)
+    }
+
+    checkWindow()
+  }, [])
+
   const submitLog = async () => {
+    if (!windowOpen) return setMessage('Logging window is closed')
     if (!eliminations) return setMessage('Enter eliminations')
     setUploading(true)
     setMessage('Saving...')
@@ -59,10 +109,17 @@ export default function LogGame() {
           Log a Game
         </h1>
 
+        {timeLeft && (
+          <div className={`text-center text-lg font-bold ${windowOpen ? 'text-cyan-400' : 'text-red-400'}`}>
+            {windowOpen ? `Time left: ${timeLeft}` : timeLeft}
+          </div>
+        )}
+
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
-          className="w-full p-3 bg-gray-900/80 border border-gray-700 rounded-lg"
+          disabled={!windowOpen}
+          className="w-full p-3 bg-gray-900/80 border border-gray-700 rounded-lg disabled:opacity-50"
         >
           <option>Battle Royale</option>
           <option>Resurgence</option>
@@ -74,7 +131,8 @@ export default function LogGame() {
           placeholder="Eliminations"
           value={eliminations}
           onChange={(e) => setEliminations(e.target.value)}
-          className="w-full p-3 bg-gray-900/80 border border-gray-700 rounded-lg"
+          disabled={!windowOpen}
+          className="w-full p-3 bg-gray-900/80 border border-gray-700 rounded-lg disabled:opacity-50"
         />
 
         <div>
@@ -83,13 +141,14 @@ export default function LogGame() {
             type="file"
             accept="image/*"
             onChange={(e) => setPhoto(e.target.files?.[0] || null)}
-            className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-white"
+            disabled={!windowOpen}
+            className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-50"
           />
         </div>
 
         <button
           onClick={submitLog}
-          disabled={uploading}
+          disabled={uploading || !windowOpen}
           className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-semibold disabled:opacity-50"
         >
           {uploading ? 'Saving...' : 'Log Game'}

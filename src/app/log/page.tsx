@@ -11,11 +11,13 @@ export default function LogGame() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [timeLeft, setTimeLeft] = useState<string | null>(null)
+  const [timeLeft, setTimeLeft] = useState('Checking window...')
   const [windowOpen, setWindowOpen] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
+    let interval: NodeJS.Timeout
+
     const checkWindow = async () => {
       const { data } = await supabase
         .from('game_logs')
@@ -24,40 +26,39 @@ export default function LogGame() {
         .limit(1)
 
       if (!data || data.length === 0) {
-        setTimeLeft('Window not started yet')
+        setTimeLeft('Waiting for first log to start the 5-hour window')
         setWindowOpen(true)
         return
       }
 
       const start = new Date(data[0].created_at)
       const end = new Date(start.getTime() + WINDOW_HOURS * 60 * 60 * 1000)
-      const now = new Date()
-
-      if (now > end) {
-        setWindowOpen(false)
-        setTimeLeft('Logging closed')
-        return
-      }
 
       const updateTimer = () => {
-        const diff = end.getTime() - new Date().getTime()
+        const now = new Date()
+        const diff = end.getTime() - now.getTime()
+
         if (diff <= 0) {
           setWindowOpen(false)
-          setTimeLeft('Logging closed')
+          setTimeLeft('LOGGING CLOSED')
+          clearInterval(interval)
           return
         }
+
         const h = Math.floor(diff / 3600000)
         const m = Math.floor((diff % 3600000) / 60000)
         const s = Math.floor((diff % 60000) / 1000)
-        setTimeLeft(`${h}h ${m}m ${s}s`)
+        setTimeLeft(`${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`)
+        setWindowOpen(true)
       }
 
       updateTimer()
-      const interval = setInterval(updateTimer, 1000)
-      return () => clearInterval(interval)
+      interval = setInterval(updateTimer, 1000)
     }
 
     checkWindow()
+
+    return () => clearInterval(interval)
   }, [])
 
   const submitLog = async () => {
@@ -104,16 +105,18 @@ export default function LogGame() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-4 bg-black/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-800">
+      <div className="w-full max-w-md space-y-5 bg-black/60 backdrop-blur-sm p-8 rounded-2xl border border-gray-800">
         <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
           Log a Game
         </h1>
 
-        {timeLeft && (
-          <div className={`text-center text-lg font-bold ${windowOpen ? 'text-cyan-400' : 'text-red-400'}`}>
-            {windowOpen ? `Time left: ${timeLeft}` : timeLeft}
-          </div>
-        )}
+        {/* Big visible timer */}
+        <div className={`text-center py-4 rounded-xl border ${windowOpen ? 'border-cyan-500 bg-cyan-950/40' : 'border-red-500 bg-red-950/40'}`}>
+          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">Logging Window</p>
+          <p className={`text-2xl font-black ${windowOpen ? 'text-cyan-400' : 'text-red-400'}`}>
+            {timeLeft}
+          </p>
+        </div>
 
         <select
           value={mode}
@@ -155,7 +158,7 @@ export default function LogGame() {
         </button>
 
         {message && <p className="text-center text-sm text-yellow-400">{message}</p>}
-        <a href="/" className="block text-center text-gray-400 hover:text-cyan-400 text-sm mt-4">← Back to Home</a>
+        <a href="/" className="block text-center text-gray-400 hover:text-cyan-400 text-sm">← Back to Home</a>
       </div>
     </div>
   )

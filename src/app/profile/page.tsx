@@ -79,7 +79,7 @@ export default function ProfilePage() {
           onClick={saveProfile}
           className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-semibold"
         >
-          Save Gamertag
+          Update Gamertag
         </button>
 
         <div>

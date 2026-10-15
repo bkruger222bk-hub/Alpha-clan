@@ -78,27 +78,23 @@ export default function Leaderboard() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-5xl md:text-6xl font-black text-center tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.4)] mb-1">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-center tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-[0_0_15px_rgba(59,130,246,0.4)] mb-1">
           ALPHA
         </h1>
-        <p className="text-center text-gray-400 tracking-[0.4em] uppercase text-sm mb-10">Leaderboard</p>
+        <p className="text-center text-gray-400 tracking-[0.4em] uppercase text-sm mb-8">Leaderboard</p>
 
         <div className="space-y-3">
           {logs.map((player, i) => {
             const colorClass = getRankColor(i)
             return (
-              <div key={player.gamertag} className="flex items-center justify-between bg-black/50 border border-gray-800 p-4 rounded-xl backdrop-blur-sm hover:border-cyan-800/50 transition">
-                <div className="flex items-center gap-4">
-                  <span className={`text-2xl font-black w-10 ${colorClass}`}>
-                    {i + 1}
-                  </span>
-                  <span className={`font-semibold text-lg ${colorClass}`}>
-                    {player.gamertag}
-                  </span>
+              <div key={player.gamertag} className="bg-black/50 border border-gray-800 p-4 rounded-xl backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className={`text-2xl font-black w-8 ${colorClass}`}>{i + 1}</span>
+                  <span className={`font-semibold text-lg flex-1 ${colorClass}`}>{player.gamertag}</span>
                 </div>
-                <div className="text-right text-sm space-x-4">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm pl-11">
                   <span className="text-yellow-400 font-medium">{player.points.toFixed(1)} pts</span>
                   <span className="text-blue-400">{player.elims} elims</span>
                   <span className="text-gray-400">{player.games} games</span>
@@ -109,7 +105,7 @@ export default function Leaderboard() {
           })}
         </div>
 
-        <a href="/" className="block text-center text-gray-400 hover:text-cyan-400 mt-12 tracking-widest text-sm">← BACK</a>
+        <a href="/" className="block text-center text-gray-400 hover:text-cyan-400 mt-10 tracking-widest text-sm">← BACK</a>
       </div>
     </div>
   )

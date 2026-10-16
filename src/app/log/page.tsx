@@ -11,7 +11,7 @@ export default function LogGame() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
-  const [timeLeft, setTimeLeft] = useState('Checking window...')
+  const [timeLeft, setTimeLeft] = useState('Checking your window...')
   const [windowOpen, setWindowOpen] = useState(true)
   const supabase = createClient()
 
@@ -19,14 +19,23 @@ export default function LogGame() {
     let interval: NodeJS.Timeout
 
     const checkWindow = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setTimeLeft('Please log in')
+        setWindowOpen(false)
+        return
+      }
+
+      // Look at THIS user's earliest log only
       const { data } = await supabase
         .from('game_logs')
         .select('created_at')
+        .eq('member_id', user.id)
         .order('created_at', { ascending: true })
         .limit(1)
 
       if (!data || data.length === 0) {
-        setTimeLeft('Waiting for first log to start the 5-hour window')
+        setTimeLeft('Your 5-hour window starts when you log your first game')
         setWindowOpen(true)
         return
       }
@@ -40,7 +49,7 @@ export default function LogGame() {
 
         if (diff <= 0) {
           setWindowOpen(false)
-          setTimeLeft('LOGGING CLOSED')
+          setTimeLeft('YOUR LOGGING WINDOW IS CLOSED')
           clearInterval(interval)
           return
         }
@@ -62,7 +71,7 @@ export default function LogGame() {
   }, [])
 
   const submitLog = async () => {
-    if (!windowOpen) return setMessage('Logging window is closed')
+    if (!windowOpen) return setMessage('Your logging window is closed')
     if (!eliminations) return setMessage('Enter eliminations')
     setUploading(true)
     setMessage('Saving...')
@@ -111,7 +120,7 @@ export default function LogGame() {
         </h1>
 
         <div className={`text-center py-4 rounded-xl border ${windowOpen ? 'border-cyan-500 bg-cyan-950/40' : 'border-red-500 bg-red-950/40'}`}>
-          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">Logging Window</p>
+          <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">Your Logging Window</p>
           <p className={`text-2xl font-black ${windowOpen ? 'text-cyan-400' : 'text-red-400'}`}>
             {timeLeft}
           </p>
@@ -158,7 +167,6 @@ export default function LogGame() {
 
         {message && <p className="text-center text-sm text-yellow-400">{message}</p>}
 
-        {/* Scoring explanation */}
         <div className="mt-6 pt-6 border-t border-gray-700">
           <h2 className="text-center text-sm font-semibold text-cyan-400 tracking-wider mb-3">HOW POINTS ARE CALCULATED</h2>
           <div className="text-xs space-y-1.5 text-gray-300">
